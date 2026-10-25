@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SmartExam" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">#10355F</item>
+        <item name="android:navigationBarColor">#10355F</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:colorAccent">#167C8C</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowBackground">#F3F7FB</item>
+    </style>
+</resources>
