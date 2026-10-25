@@ -14,16 +14,18 @@ import android.widget.LinearLayout
 import android.widget.TextView
 
 object Palette {
-    const val NAVY = 0xFF10355F.toInt()
-    const val TEAL = 0xFF147D87.toInt()
-    const val BG = 0xFFF3F7FB.toInt()
+    // Dipetik dari src/app/globals.css pada baseline My SmartClass Desktop.
+    const val NAVY = 0xFF71145F.toInt()
+    const val DEEP_MAGENTA = 0xFF962FBF.toInt()
+    const val TEAL = 0xFFD62976.toInt()
+    const val BG = 0xFFFFF8FC.toInt()
     const val CARD = Color.WHITE
-    const val TEXT = 0xFF1C3346.toInt()
-    const val MUTED = 0xFF64758A.toInt()
-    const val BORDER = 0xFFD9E5ED.toInt()
-    const val RED = 0xFFB83B41.toInt()
-    const val AMBER = 0xFF91610C.toInt()
-    const val LIGHT_TEAL = 0xFFE3F4F3.toInt()
+    const val TEXT = 0xFF38172E.toInt()
+    const val MUTED = 0xFF7B6473.toInt()
+    const val BORDER = 0xFFEBD7E3.toInt()
+    const val RED = 0xFFB4233B.toInt()
+    const val AMBER = 0xFF92400E.toInt()
+    const val LIGHT_TEAL = 0xFFFFEAF4.toInt()
 }
 
 class UiKit(private val activity: Activity) {
@@ -73,7 +75,7 @@ class UiKit(private val activity: Activity) {
         isAllCaps = false
         textSize = 15f
         setTextColor(if (main) Color.WHITE else Palette.NAVY)
-        backgroundTintList = ColorStateList.valueOf(if (main) Palette.TEAL else 0xFFE9F0F6.toInt())
+        backgroundTintList = ColorStateList.valueOf(if (main) Palette.TEAL else 0xFFF6EAF1.toInt())
         minHeight = dp(48)
         setOnClickListener { click() }
     }

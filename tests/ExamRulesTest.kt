@@ -20,6 +20,11 @@ fun main() {
     check(ExamRules.codeFromExamLink("http://192.168.1.8:3210/ujian-siswa?kode=ABCD12") == "ABCD12")
     check(ExamRules.codeFromExamLink("http://192.168.1.8:3210/") == null)
     check(ExamRules.cleanCode(" ab 12 cd ") == "AB12CD")
+    check(ExamRules.baseUrlForMode(ExamConnectionMode.ONLINE, "") == "https://exam.mysmartclass.my.id")
+    check(ExamRules.baseUrlForMode(ExamConnectionMode.ONLINE, "http://hostlain.example") == "https://exam.mysmartclass.my.id")
+    check(ExamRules.baseUrlForMode(ExamConnectionMode.LAN, "http://192.168.1.8:3210/ujian-siswa") == "http://192.168.1.8:3210")
+    shouldFail { ExamRules.baseUrlForMode(ExamConnectionMode.LAN, "https://exam.mysmartclass.my.id") }
+    check(ExamRules.cleanCode("km3p5") == "KM3P5")
     check(ExamRules.isPrivateIpv4("192.168.0.20"))
     check(!ExamRules.isPrivateIpv4("192.169.0.20"))
     check(ExamRules.unansweredNumbers(listOf("q1", "q2", "q3"), mapOf("q1" to "A", "q2" to "  ")) == listOf(2, 3))
@@ -27,5 +32,5 @@ fun main() {
     check(ExamRules.answerLetter(3) == "D")
     check(ExamRules.formatTime(3661) == "01:01:01")
     check(ExamRules.formatTime(-10) == "00:00:00")
-    println("LULUS: 18+ pemeriksaan aturan dasar My SmartExam.")
+    println("LULUS: 23+ pemeriksaan aturan dasar My SmartExam.")
 }

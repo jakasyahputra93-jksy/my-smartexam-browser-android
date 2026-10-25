@@ -11,11 +11,15 @@ android {
         applicationId = "id.mysmartclass.smartexam"
         minSdk = 28
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.1.2"
+        versionCode = 4
+        versionName = "0.3.0"
     }
 
     buildTypes {
+        debug {
+            // Pertahankan applicationIdSuffix pilot agar APK uji v0.3 dapat dipasang berdampingan dengan APK uji lama.
+            applicationIdSuffix = ".v03test"
+        }
         release {
             isMinifyEnabled = false
             // Untuk rilis ke siswa, buat keystore resmi di komputer pengembang.

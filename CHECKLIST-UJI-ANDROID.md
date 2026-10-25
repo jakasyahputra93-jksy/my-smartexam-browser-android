@@ -1,42 +1,21 @@
-# Checklist Uji APK di HP Android
+# Checklist Uji My SmartExam Browser v0.3.0
 
-Tanggal tes: __________   Merek HP: __________   Android: __________   Guru penguji: __________
+Gunakan paket latihan, jangan ujian resmi sebelum seluruh kasus berikut lulus.
 
-## Koneksi dan peserta
-
-- [ ] APK bisa dipasang, dibuka, dan dijalankan ulang.
-- [ ] Saat HP memakai Wi-Fi sekolah, alamat `http://IP-PC:PORT` terhubung.
-- [ ] Tautan lengkap `/ujian-siswa?kode=...` mengisi kode otomatis jika kolom kode kosong.
-- [ ] Kode yang salah menghasilkan penjelasan tanpa menutup aplikasi.
-- [ ] Nama siswa cocok dengan daftar My SmartClass.
-- [ ] Mode Online belum mengizinkan ujian sebelum backend cloud tersedia.
-
-## Pengamanan dan soal
-
-- [ ] Screen Pinning diminta ketika siswa mulai ujian.
-- [ ] Siswa tidak dapat mengerjakan sebelum Screen Pinning berhasil.
-- [ ] Siswa dapat melepas pin mengikuti prosedur Android (bukan dikunci permanen).
-- [ ] Tangkapan layar normal dibatasi selama ujian.
-- [ ] Pilihan ganda bisa dipilih dan diubah, uraian bisa diketik.
-- [ ] Timer sesuai durasi server dan sisa waktu tidak di-reset ketika aplikasi dibuka ulang.
-- [ ] Perpindahan soal mempertahankan jawaban.
-- [ ] Tombol Selesai memperlihatkan nomor soal kosong.
-- [ ] Kembali dari dialog Selesai tidak mengumpulkan ujian.
-
-## Koneksi dan remedial
-
-- [ ] Matikan lalu nyalakan Wi-Fi, jawaban yang tertunda dikirim setelah koneksi kembali, selama waktu ujian masih berlaku.
-- [ ] Tutup paksa APK lalu buka lagi, sesi aktif pulih ketika server tersedia.
-- [ ] Selesai ujian, rekap jawaban tampil di My SmartClass.
-- [ ] Klik Ujian Ulang, server membuat attempt baru (bukan mengubah attempt lama).
-- [ ] Percobaan ulang memakai urutan soal baru dari server.
-- [ ] Guru masih dapat melihat dan memilih nilai semua percobaan dari My SmartClass.
-- [ ] Koneksi hilang saat waktu habis: amati pesan error dan simpan laporan pengawas. Perilaku ini belum tuntas dalam v0.1.
-
-## Uji beban awal
-
-- [ ] 3 siswa bersamaan (tahap awal)
-- [ ] 10 siswa bersamaan
-- [ ] 30 siswa bersamaan (sebelum penggunaan riil)
-
-Catat langkah untuk mengulang masalah dan foto pesan error tanpa menampilkan data pribadi siswa.
+- [ ] Debug APK GitHub Actions berhasil dibangun dan diunduh.
+- [ ] Terpasang berdampingan dengan APK lama tanpa menghapus aplikasi lama.
+- [ ] Welcome Screen menunjukkan logo merah My SmartClass asli, palet ungu/magenta, footer identitas pengembang.
+- [ ] Memilih Online langsung menampilkan server exam.mysmartclass.my.id tanpa kolom URL.
+- [ ] Memasukkan `KM3P5` menampilkan judul ujian 10 soal dan dropdown 28 siswa (jika paket itu masih OPEN).
+- [ ] Nama siswa yang sedang ACTIVE tampil sebagai sedang ujian.
+- [ ] Dua HP memilih nama sama: yang kedua gagal, tanpa memperoleh jawaban/sesi milik HP pertama.
+- [ ] Siswa memilih namanya, menekan Mulai, menyetujui Screen Pinning dan melihat soal.
+- [ ] Pilihan ganda, uraian, timer, perpindahan soal dan penyimpanan berjalan.
+- [ ] Soal yang belum dijawab muncul pada konfirmasi pengumpulan.
+- [ ] Saat internet putus, jawaban tertunda tetap tersimpan di perangkat dan terkirim saat online kembali.
+- [ ] Aplikasi ditutup paksa lalu dibuka: langsung mencoba memulihkan sesi dengan data perangkat.
+- [ ] Guru dapat membuka kunci dan memindahkan sesi pada HP lain bila dibutuhkan.
+- [ ] Ujian LAN melalui alamat IP privat tetap berfungsi.
+- [ ] Guru berhasil menarik hasil Online dan memberikan nilai uraian melalui Desktop.
+- [ ] Remedial membuat attempt baru, dengan urutan soal berbeda dari percobaan sebelumnya.
+- [ ] Data lama di Worker hanya terhapus setelah persyaratan retensi dan konfirmasi sinkron dipenuhi.

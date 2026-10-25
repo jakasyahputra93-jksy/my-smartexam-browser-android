@@ -22,6 +22,8 @@ import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.ImageView
+import android.view.View
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.ScrollView
@@ -31,12 +33,12 @@ import android.widget.Toast
 import java.util.concurrent.Executors
 
 /**
- * My SmartExam Browser v0.1.0
- * Aplikasi native yang menggunakan API ujian LAN RC6.19.14 tanpa mengganti server.
- * Online memerlukan backend cloud kompatibel, bukan sekadar mengubah alamat.
+ * My SmartExam Browser v0.3.0, companion resmi My SmartClass.
+ * LAN mempertahankan kontrak lokal, Online memakai Cloud v0.4.1 dan daftar nama.
+ * Screen Pinning adalah perlindungan best-effort pada HP pribadi, bukan kiosk MDM.
  */
 class MainActivity : Activity() {
-    private enum class Screen { SETUP, PICK_STUDENT, PIN_GATE, EXAM, BUSY, FINISHED }
+    private enum class Screen { WELCOME, SETUP, PICK_STUDENT, PIN_GATE, EXAM, BUSY, FINISHED }
 
     private lateinit var ui: UiKit
     private lateinit var store: SessionStore
@@ -97,11 +99,15 @@ class MainActivity : Activity() {
         ui = UiKit(this)
         store = SessionStore(this)
         mode = store.savedMode()
-        server = store.savedServer()
+        server = if (mode == ExamConnectionMode.ONLINE) ExamRules.CLOUD_BASE_URL else store.savedServer()
         code = store.savedCode()
-        renderSetup()
+        if (store.savedAttempt() != null) {
+            renderBusy("Memulihkan ujian", "Menghubungkan kembali sesi yang telah tersimpan...")
+            restoreSession()
+        } else {
+            renderWelcome()
+        }
         mainHandler.post(ticker)
-        if (store.savedAttempt() != null) restoreSession()
     }
 
     override fun onResume() {
@@ -129,6 +135,8 @@ class MainActivity : Activity() {
     override fun onBackPressed() {
         if (exam?.status == "ACTIVE") {
             Toast.makeText(this, "Selesaikan ujian melalui tombol yang tersedia.", Toast.LENGTH_SHORT).show()
+        } else if (screen == Screen.SETUP) {
+            renderWelcome()
         } else if (screen == Screen.PICK_STUDENT || screen == Screen.FINISHED) {
             renderSetup()
         } else {
@@ -143,6 +151,51 @@ class MainActivity : Activity() {
         super.onDestroy()
     }
 
+    private fun renderWelcome() {
+        screen = Screen.WELCOME
+        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        timerView = null
+        progressView = null
+        saveView = null
+        val scroller = ScrollView(this)
+        scroller.isFillViewport = true
+        scroller.setBackgroundColor(Palette.BG)
+        val root = ui.vertical(24)
+        root.gravity = Gravity.CENTER_HORIZONTAL
+        scroller.addView(root)
+        setContentView(scroller)
+
+        val hero = ui.card(22)
+        hero.gravity = Gravity.CENTER_HORIZONTAL
+        val logo = ImageView(this).apply {
+            setImageResource(R.drawable.mysmartclass_logo)
+            contentDescription = "Logo resmi My SmartClass"
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }
+        hero.addView(logo, LinearLayout.LayoutParams(ui.dp(120), ui.dp(120)))
+        hero.addView(ui.spaced(ui.centered("MY SMARTCLASS ECOSYSTEM", 12f, Palette.DEEP_MAGENTA), 16))
+        hero.addView(ui.spaced(ui.centered("My SmartExam Browser", 25f, Palette.NAVY).apply {
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+        }, 8))
+        hero.addView(ui.spaced(ui.centered("Aplikasi ujian digital untuk siswa", 14f, Palette.MUTED), 8))
+        root.addView(ui.spaced(hero, 24))
+
+        val card = ui.card(18)
+        card.addView(ui.label("Selamat Datang!", 20f, Palette.NAVY, true))
+        card.addView(ui.spaced(ui.label("Gunakan kode ujian dari guru dan pilih nama Anda. Aplikasi mendukung jaringan sekolah atau internet.", 14f, Palette.MUTED), 10))
+        card.addView(ui.spaced(ui.button("Mulai Ujian") { renderSetup() }, 20))
+        root.addView(ui.spaced(card, 18))
+        val footer = ui.vertical(6)
+        footer.gravity = Gravity.CENTER_HORIZONTAL
+        footer.addView(ui.centered("Dibuat & didesain Oleh:", 12f, Palette.MUTED))
+        footer.addView(ui.centered("Jaka Syahputra,S.Sos.,Gr.", 13f, Palette.NAVY).apply {
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+        })
+        footer.addView(ui.spaced(ui.centered("WA 081222282393  •  IG @jakasyahputra93", 11f, Palette.MUTED), 7))
+        footer.addView(ui.spaced(ui.centered("My SmartExam Browser v0.3.0", 11f, Palette.MUTED), 5))
+        root.addView(ui.spaced(footer, 25))
+    }
+
     private fun basePage(title: String, subtitle: String): LinearLayout {
         timerView = null
         progressView = null
@@ -153,11 +206,25 @@ class MainActivity : Activity() {
         val body = ui.vertical(16)
         scroller.addView(body)
         setContentView(scroller)
-        val header = ui.vertical(18)
+        val header = ui.vertical(16)
         header.background = ui.shape(Palette.NAVY, 18)
-        header.addView(ui.label("MY SMARTEXAM BROWSER", 12f, 0xFFBDE2EA.toInt(), true))
-        header.addView(ui.spaced(ui.label(title, 23f, 0xFFFFFFFF.toInt(), true), 5))
-        header.addView(ui.spaced(ui.label(subtitle, 13f, 0xFFDBE8F3.toInt()), 5))
+        val logoRow = ui.horizontal()
+        val icon = ImageView(this).apply {
+            setImageResource(R.drawable.mysmartclass_logo)
+            contentDescription = "My SmartClass"
+            background = ui.shape(Palette.CARD, 9)
+            setPadding(ui.dp(5), ui.dp(5), ui.dp(5), ui.dp(5))
+        }
+        logoRow.addView(icon, LinearLayout.LayoutParams(ui.dp(42), ui.dp(42)))
+        val heading = ui.vertical(0)
+        heading.addView(ui.label("MY SMARTEXAM BROWSER", 13f, 0xFFFFFFFF.toInt(), true))
+        heading.addView(ui.spaced(ui.label("Ekosistem My SmartClass", 11f, 0xFFFFD9EA.toInt()), 3))
+        val hp = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        hp.leftMargin = ui.dp(12)
+        logoRow.addView(heading, hp)
+        header.addView(logoRow)
+        header.addView(ui.spaced(ui.label(title, 23f, 0xFFFFFFFF.toInt(), true), 8))
+        header.addView(ui.spaced(ui.label(subtitle, 13f, 0xFFFFEDF6.toInt()), 4))
         body.addView(header)
         return body
     }
@@ -171,11 +238,10 @@ class MainActivity : Activity() {
     private fun renderSetup() {
         screen = Screen.SETUP
         window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        val body = basePage("Siap mengikuti ujian?", "Hubungkan HP ke server ujian My SmartClass.")
+        val body = basePage("Siap mengikuti ujian?", "Pilih jalur ujian, lalu masukkan kode dari guru.")
         val card = ui.card()
         body.addView(ui.spaced(card, 14))
         card.addView(ui.label("1. Pilih jalur ujian", 16f, Palette.NAVY, true))
-
         val choice = RadioGroup(this)
         choice.orientation = RadioGroup.HORIZONTAL
         val local = RadioButton(this).apply { id = 101; text = "LAN Sekolah"; textSize = 14f }
@@ -185,28 +251,45 @@ class MainActivity : Activity() {
         choice.check(if (mode == ExamConnectionMode.LAN) 101 else 102)
         card.addView(ui.spaced(choice, 7))
 
-        card.addView(ui.spaced(ui.label("2. Alamat server", 16f, Palette.NAVY, true), 15))
-        val serverField = ui.textField("http://192.168.1.10:3210", server)
-        card.addView(ui.spaced(serverField, 7))
-        message(card, "Untuk LAN, salin alamat /ujian-siswa dari menu Ujian pada komputer guru. Contoh: http://192.168.1.10:3210/ujian-siswa")
+        val cloudStatus = ui.vertical(12)
+        cloudStatus.background = ui.shape(Palette.LIGHT_TEAL, 12, Palette.BORDER)
+        cloudStatus.addView(ui.label("Server Online Otomatis", 15f, Palette.NAVY, true))
+        cloudStatus.addView(ui.spaced(ui.label("exam.mysmartclass.my.id", 13f, Palette.DEEP_MAGENTA), 5))
+        cloudStatus.addView(ui.spaced(ui.label("Tidak perlu mengisi alamat atau kode peserta pribadi.", 12f, Palette.MUTED), 5))
+        card.addView(ui.spaced(cloudStatus, 12))
 
-        card.addView(ui.spaced(ui.label("3. Kode ujian", 16f, Palette.NAVY, true), 15))
-        val codeField = ui.textField("Kode dari guru", code)
+        val lanBlock = ui.vertical(0)
+        lanBlock.addView(ui.label("Alamat server LAN Sekolah", 15f, Palette.NAVY, true))
+        val defaultLan = store.savedLanServer()
+        val serverField = ui.textField("http://192.168.1.10:3210", defaultLan)
+        lanBlock.addView(ui.spaced(serverField, 7))
+        lanBlock.addView(ui.spaced(ui.label("Salin alamat /ujian-siswa dari komputer guru. HP harus tersambung ke jaringan sekolah.", 12f, Palette.MUTED), 8))
+        card.addView(ui.spaced(lanBlock, 12))
+        fun refreshModeFields() {
+            val onlineMode = choice.checkedRadioButtonId == 102
+            cloudStatus.visibility = if (onlineMode) View.VISIBLE else View.GONE
+            lanBlock.visibility = if (onlineMode) View.GONE else View.VISIBLE
+        }
+        choice.setOnCheckedChangeListener { _, _ -> refreshModeFields() }
+        refreshModeFields()
+
+        card.addView(ui.spaced(ui.label("2. Kode ujian", 16f, Palette.NAVY, true), 16))
+        val codeField = ui.textField("Kode ujian dari guru", code)
         card.addView(ui.spaced(codeField, 7))
-        message(card, "Mode Online memerlukan server HTTPS yang mendukung API Ujian Hybrid. Layanan cloud belum tersedia dalam baseline lama.")
+        message(card, "Setelah kode cocok, pilih nama sendiri dari daftar peserta.")
 
         val check = ui.button("Periksa Kode Ujian") {
             val selectedMode = if (choice.checkedRadioButtonId == 102) ExamConnectionMode.ONLINE else ExamConnectionMode.LAN
-            val normalized = try { ExamRules.normalizeServer(serverField.text.toString(), selectedMode) }
-            catch (e: IllegalArgumentException) { showAlert("Alamat belum benar", e.message ?: "Periksa alamat server."); return@button }
-            if (selectedMode == ExamConnectionMode.ONLINE) {
-                showAlert("Mode Online belum tersedia", "APK sudah menyiapkan pilihan Online, tetapi backend Ujian Hybrid My SmartClass belum dibangun. Untuk saat ini gunakan LAN Sekolah.")
+            val normalized = try { ExamRules.baseUrlForMode(selectedMode, serverField.text.toString()) }
+            catch (e: IllegalArgumentException) { showAlert("Alamat belum benar", e.message ?: "Periksa alamat server LAN."); return@button }
+            val clean = ExamRules.cleanCode(codeField.text.toString().ifBlank { ExamRules.codeFromExamLink(serverField.text.toString()).orEmpty() })
+            val validLength = if (selectedMode == ExamConnectionMode.ONLINE) clean.length in 5..24 else clean.length in 4..24
+            if (!validLength) {
+                showAlert("Kode belum lengkap", if (selectedMode == ExamConnectionMode.ONLINE) "Kode ujian online harus 5 sampai 24 karakter." else "Kode ujian LAN minimal 4 karakter.")
                 return@button
             }
-            val clean = ExamRules.cleanCode(codeField.text.toString().ifBlank { ExamRules.codeFromExamLink(serverField.text.toString()).orEmpty() })
-            if (clean.length < 4) { showAlert("Kode belum lengkap", "Kode ujian minimal 4 karakter."); return@button }
-            if (store.savedAttempt() != null && store.pending().isNotEmpty()) {
-                showAlert("Jawaban belum terkirim", "Ada jawaban lokal dari sesi sebelumnya. Pulihkan sesi tersebut sebelum membuat sesi baru.")
+            if (store.savedAttempt() != null) {
+                showAlert("Sesi sebelumnya masih tersimpan", "Pulihkan ujian sebelumnya terlebih dahulu. Jangan membuat sesi baru pada perangkat ini sebelum jawaban selesai tersinkron.")
                 return@button
             }
             mode = selectedMode
@@ -223,7 +306,8 @@ class MainActivity : Activity() {
             body.addView(ui.spaced(resume, 12))
         }
         if (errorMessage.isNotBlank()) message(body, errorMessage, true)
-        message(body, "Penguncian Screen Pinning memerlukan persetujuan Android. Pemilik HP tetap dapat melepaskan sematan sesuai aturan perangkat.")
+        message(body, "Screen Pinning memerlukan persetujuan Android. Pada HP pribadi, pemilik perangkat tetap dapat melepaskan sematan sesuai aturan Android.")
+        body.addView(ui.spaced(ui.button("Kembali ke Welcome Screen", false) { renderWelcome() }, 12))
     }
 
     private fun checkCode() {
@@ -248,28 +332,41 @@ class MainActivity : Activity() {
     private fun renderStudentSelection() {
         val info = publicInfo ?: return renderSetup()
         screen = Screen.PICK_STUDENT
-        val body = basePage("Pilih peserta ujian", "Pastikan nama dan kelas sesuai dengan data guru.")
+        val body = basePage("Pilih peserta ujian", "Pastikan nama dan kelas sesuai data yang diberikan guru.")
         val card = ui.card()
         body.addView(ui.spaced(card, 14))
         card.addView(ui.label(info.title, 19f, Palette.NAVY, true))
         card.addView(ui.spaced(ui.label("${info.subjectName}  •  ${info.className}", 14f, Palette.MUTED), 6))
         card.addView(ui.spaced(ui.label("${info.questionCount} soal  •  ${info.durationMinutes} menit", 14f), 6))
-        card.addView(ui.spaced(ui.label("Nama peserta", 15f, Palette.NAVY, true), 16))
-        val spinner = Spinner(this)
-        val names = listOf("Pilih nama siswa") + info.participants.map { it.label }
-        spinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, names)
-        card.addView(ui.spaced(spinner, 7))
-        val action = ui.button("Masuk dan Aktifkan Penguncian") {
-            val selected = spinner.selectedItemPosition - 1
-            if (selected !in info.participants.indices) {
-                showAlert("Pilih peserta", "Pilih nama siswa yang sesuai terlebih dahulu.")
-                return@button
+        if (info.participants.isEmpty()) {
+            message(card, "Belum ada peserta dalam daftar untuk ujian ini. Hubungi guru agar menerbitkan ujian dengan pilihan Login: Kode Ujian + Nama.", true)
+        } else {
+            card.addView(ui.spaced(ui.label("Nama peserta", 15f, Palette.NAVY, true), 16))
+            val spinner = Spinner(this)
+            val names = listOf("Pilih nama siswa") + info.participants.map { participant ->
+                if (participant.status == "ACTIVE") "${participant.label}  •  Sedang ujian" else participant.label
             }
-            joinExam(info.participants[selected])
+            spinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, names)
+            card.addView(ui.spaced(spinner, 7))
+            message(card, "Satu nama hanya boleh memiliki satu sesi ujian aktif. Jika HP mati atau berganti perangkat, minta bantuan guru pengawas.")
+            val action = ui.button("Masuk dan Aktifkan Penguncian") {
+                val selected = spinner.selectedItemPosition - 1
+                if (selected !in info.participants.indices) {
+                    showAlert("Pilih peserta", "Pilih nama siswa yang sesuai terlebih dahulu.")
+                    return@button
+                }
+                val participant = info.participants[selected]
+                if (participant.status == "ACTIVE") {
+                    showAlert("Identitas sedang digunakan", "Nama ini sedang mengikuti ujian. Pulihkan sesi dari HP yang sama atau hubungi guru untuk membuka kunci peserta.")
+                    return@button
+                }
+                joinExam(participant)
+            }
+            card.addView(ui.spaced(action, 16))
         }
-        card.addView(ui.spaced(action, 16))
+        body.addView(ui.spaced(ui.button("Segarkan Daftar Peserta", false) { checkCode() }, 12))
         body.addView(ui.spaced(ui.button("Kembali ke Pengaturan", false) { renderSetup() }, 8))
-        message(body, "Setelah masuk, Android akan meminta izin untuk menyematkan aplikasi. Urutan soal berasal dari server dan tetap konsisten ketika melanjutkan sesi.")
+        message(body, "Setelah masuk, Android akan meminta izin untuk menyematkan aplikasi. Urutan soal ditentukan server dan tidak berubah saat melanjutkan sesi.")
     }
 
     private fun joinExam(participant: ExamParticipant) {
@@ -288,7 +385,7 @@ class MainActivity : Activity() {
                     store.saveAttempt(server, code, payload)
                     activateAttempt(payload, fromRestore = false)
                 }.onFailure {
-                    showAlert("Gagal masuk ujian", it.message ?: "Periksa koneksi dan hubungi guru.")
+                    showAlert("Gagal masuk ujian", it.message ?: "Periksa koneksi atau minta guru memeriksa sesi peserta.")
                     renderStudentSelection()
                 }
             }
@@ -590,7 +687,7 @@ class MainActivity : Activity() {
                 checkCode()
             }, 15))
         }
-        body.addView(ui.spaced(ui.button("Kembali ke Halaman Awal", false) { exam = null; renderSetup() }, 10))
+        body.addView(ui.spaced(ui.button("Kembali ke Halaman Awal", false) { exam = null; renderWelcome() }, 10))
     }
 
     private fun stopPinningSafely() {

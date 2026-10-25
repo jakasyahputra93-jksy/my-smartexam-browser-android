@@ -1,13 +1,19 @@
-# QA Status v0.1.0
+# QA Status, My SmartExam Browser v0.3.0
 
-Dilakukan pada sumber kode Android, bukan pada perangkat fisik.
+**Revision Candidate, belum siap rilis produksi.**
 
-1. **PASS**: Pemeriksaan statis kontrak lima endpoint Ujian LAN My SmartClass RC6.19.14 terhadap sumber `src/app/api/exam/public/...`.
-2. **PASS**: `ExamRules.kt` dan `ExamRulesTest.kt` dikompilasi dengan `kotlinc` yang tersedia dan dieksekusi dengan Java.
-3. **PASS**: Pengujian pemilihan server LAN/online, penolakan IP publik untuk LAN, parsing tautan kode, normalisasi token, daftar soal belum terjawab, format waktu, dan pilihan A-D.
-4. **PASS**: Pemeriksaan sumber bahwa aplikasi menghormati percobaan ulang dari server dan tidak mengacak sendiri urutan soal per attempt.
-5. **PENDING**: `gradle :app:assembleDebug`, karena Android SDK dan Gradle tidak tersedia di lingkungan penulisan sumber.
-6. **PENDING**: Pengujian konektivitas My SmartClass yang aktif dan APK pada perangkat Android nyata.
-7. **PENDING**: Pengujian sinkronisasi dan ujian serentak pada 30 siswa. Backend online belum dibuat.
+LULUS:
+- Kotlin ExamRulesTest melalui compiler kotlinc: validasi LAN, URL Cloud tetap, format waktu, jawaban kosong, dan kode ujian 5 karakter.
+- Tes otomatis `worker-central.test.mjs` Cloud v0.4.1, dengan migrasi 0001 sampai 0003 yang digunakan server, termasuk daftar siswa, lock sesi, remedial dan sinkron.
+- Validasi struktur ZIP dan keberadaan ikon dari baseline My SmartClass.
 
-Tidak ada kredensial sekolah atau data pribadi siswa di paket ini.
+BELUM TERUJI:
+- Kompilasi Android Gradle `:app:assembleDebug` oleh GitHub Actions.
+- Instal dan tes fisik Android 9, Android 13 dan terbaru.
+- Uji Online dari kode `KM3P5` ke daftar 28 peserta pada server milik pengguna (tidak ada panggilan ke server produksi dalam pengembangan ini).
+- Uji pengembalian jawaban dan tarik hasil ke My SmartClass Desktop.
+- Uji pembatasan overlay, kehilangan jaringan, reboot, dan kembalinya sesi setelah Android membunuh proses.
+
+CATATAN:
+- Mode Online memerlukan Cloud v0.4.1 dengan penerbitan `ROSTER`, bukan format lama `PRIVATE_CODE`.
+- Paket ini bukan file APK yang sudah ditandatangani. GitHub Actions akan membangun APK Debug.

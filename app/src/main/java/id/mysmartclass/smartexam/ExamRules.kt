@@ -8,6 +8,12 @@ import java.util.Locale
 enum class ExamConnectionMode { LAN, ONLINE }
 
 object ExamRules {
+    const val CLOUD_BASE_URL = "https://exam.mysmartclass.my.id"
+
+    /** Alamat Cloud bawaan tidak menerima input pengguna. LAN tetap dapat diatur guru. */
+    fun baseUrlForMode(mode: ExamConnectionMode, lanAddress: String): String =
+        if (mode == ExamConnectionMode.ONLINE) CLOUD_BASE_URL else normalizeServer(lanAddress, ExamConnectionMode.LAN)
+
     fun cleanCode(value: String): String = value.uppercase(Locale.ROOT).replace(Regex("\\s+"), "").trim()
 
     fun normalizeServer(rawAddress: String, mode: ExamConnectionMode): String {

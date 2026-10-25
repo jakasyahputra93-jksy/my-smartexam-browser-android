@@ -10,7 +10,9 @@ class SessionStore(context: Context) {
     data class SavedAttempt(val baseUrl: String, val code: String, val id: String, val key: String)
 
     @Synchronized fun saveSettings(mode: ExamConnectionMode, baseUrl: String, code: String) {
-        prefs.edit().putString("mode", mode.name).putString("server", baseUrl).putString("code", code).apply()
+        val edit = prefs.edit().putString("mode", mode.name).putString("server", baseUrl).putString("code", code)
+        if (mode == ExamConnectionMode.LAN) edit.putString("lan_server", baseUrl)
+        edit.apply()
     }
 
     fun savedMode(): ExamConnectionMode =
@@ -18,6 +20,8 @@ class SessionStore(context: Context) {
             .getOrDefault(ExamConnectionMode.LAN)
 
     fun savedServer(): String = prefs.getString("server", "") ?: ""
+    fun savedLanServer(): String = prefs.getString("lan_server", null)
+        ?: savedServer().takeIf { it.startsWith("http://") }.orEmpty()
     fun savedCode(): String = prefs.getString("code", "") ?: ""
 
     @Synchronized fun saveAttempt(baseUrl: String, code: String, attempt: AttemptData) {

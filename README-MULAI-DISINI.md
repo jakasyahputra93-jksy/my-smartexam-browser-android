@@ -1,68 +1,39 @@
-# MY SMARTEXAM BROWSER v0.1.0
-## Prototype Android terhubung dengan My SmartClass
+# My SmartExam Browser v0.3.0, Cloud Auto-Connect
 
-**Status: SOURCE CANDIDATE. Bukan APK siap produksi.**
+Kode sumber Android resmi pendamping My SmartClass Desktop. Berangkat dari baseline My-SmartExam-Android-v0.2.0-GITHUB-READY, dengan layar sambutan, warna dan logo asli desktop, serta login Online tanpa alamat server dan tanpa kode peserta pribadi.
 
-Aplikasi ini merupakan klien ujian Android **native Kotlin** untuk server Ujian LAN yang sudah tersedia dalam baseline **My SmartClass v1.0.0-rc.6.19.14**. Paket sumber ini tidak mengubah aplikasi desktop atau database My SmartClass.
+**Status:** Revision Candidate. Belum lulus build Gradle Android / uji HP Android 9 pada paket ini. Gunakan hanya untuk ujian percobaan sampai pengujian seluruh alur selesai.
 
-### Yang sudah dibuat
+## Cara build APK Debug lewat GitHub
 
-- Pilihan jalur LAN / Online pada halaman awal. Saat ini **LAN berfungsi jika server My SmartClass aktif**; Online sengaja belum diaktifkan karena server ujian cloud serta login peserta yang aman belum ada.
-- Masukkan IP komputer guru dan kode ujian. Aplikasi juga dapat membaca `kode` dari tautan seperti `http://192.168.1.10:3210/ujian-siswa?kode=ABCD12`.
-- Verifikasi kode dan pilih nama peserta dari API lokal My SmartClass.
-- Ambil soal pilihan ganda/uraian dan sisa waktu langsung dari server. Per urutan soal mengikuti pengacakan server sesuai `attemptId`.
-- Simpan jawaban ke server, dengan antrean jawaban lokal ketika koneksi terganggu dan pengiriman ulang saat tersedia.
-- Konfirmasi sebelum pengumpulan, termasuk jumlah dan nomor soal yang belum dijawab.
-- Remedial/ujian ulang membuat attempt baru melalui API server; riwayat lama tidak ditimpa.
-- `FLAG_SECURE`, permintaan Screen Pinning dan pembatasan overlay Android 12 ke atas.
-- Tombol kembali tidak keluar dari sesi aktif; perangkat pribadi tetap dapat melepaskan Screen Pinning menurut aturan Android.
-- Pulihkan sesi sebelumnya memakai identitas attempt dan akses kunci yang tersimpan hanya dalam penyimpanan privat aplikasi. Backup Android untuk data ini dinonaktifkan.
+1. Buka repository `my-smartexam-browser-android` yang telah Anda gunakan sebelumnya.
+2. Di GitHub Desktop, pilih Repository > Show in Explorer.
+3. Ekstrak isi ZIP ini, lalu **salin seluruh file sumber** ke folder repository, termasuk folder `.github` dan `app`. Pilih Replace ketika diminta. Jangan hapus folder `.git`.
+4. Kembali ke GitHub Desktop, isi Summary `My SmartExam Browser v0.3.0 Cloud Auto-Connect`, klik **Commit to main**, kemudian **Push origin**.
+5. Buka repository di situs GitHub, pilih tab **Actions**, lalu pilih hasil terbaru dari `Build My SmartExam APK`.
+6. Setelah build hijau, unduh artifact bernama `My-SmartExam-Browser-v0.3.0-cloud-debug-apk`, ekstrak, lalu pasang `app-debug.apk` pada HP percobaan.
 
-### Langkah mencoba pada LAN
+Versi Debug memakai package suffix `.v03test` agar dapat dipasang **berdampingan** dengan APK uji v0.2.0. Ini mencegah konflik tanda tangan debug GitHub dan menjaga aplikasi lama sebagai cadangan. Jangan menghapus APK lama jika di dalamnya masih ada ujian atau jawaban yang belum tersinkron.
 
-1. Jalankan My SmartClass pada PC guru dan pastikan server LAN dapat diakses melalui Wi-Fi yang sama.
-2. Di My SmartClass, buka **Ujian**, pilih paket, buka ujian, catat alamat LAN dan kode ujian.
-3. Pasang APK debug yang Anda bangun dari proyek ini pada HP Android 10 atau lebih baru.
-4. Nyalakan **Sematkan Layar / Screen Pinning** melalui menu keamanan Android. Nama menu dapat berbeda pada setiap merek.
-5. Di APK, pilih **LAN Sekolah**, tempel tautan siswa lengkap atau alamat server, masukkan kode jika tidak otomatis terbaca.
-6. Tekan **Periksa Kode Ujian**, pilih nama siswa, lalu **Masuk dan Aktifkan Penguncian**.
-7. Izinkan permintaan Screen Pinning, kemudian jawab soal dan pilih **Selesai dan Kumpulkan Ujian**.
-8. Coba **Ujian Ulang / Remedial** setelah ujian selesai. My SmartClass harus tetap membuka paket ujian.
+## Alur siswa
 
-**Contoh alamat:** `http://192.168.1.10:3210/ujian-siswa?kode=ABCD12`. IP dan kode hanyalah contoh, gunakan yang benar dari PC guru. HP tidak boleh memakai `localhost` atau `127.0.0.1` untuk menjangkau PC guru.
+1. Saat belum ada sesi aktif, Welcome Screen menampilkan logo My SmartClass asli, identitas aplikasi, kredit pengembang dan tombol **Mulai Ujian**.
+2. Siswa memilih **LAN Sekolah** atau **Online**.
+3. Mode Online otomatis memakai `https://exam.mysmartclass.my.id`. Tidak ada kolom URL cloud dan tidak ada kode peserta pribadi.
+4. Siswa memasukkan kode ujian bersama dari guru, misalnya `KM3P5`, lalu aplikasi meminta daftar peserta kepada Worker.
+5. Siswa memilih namanya dari dropdown. Nama dengan sesi aktif ditandai. Server tetap menolak sesi kedua walaupun status di HP belum sempat diperbarui.
+6. Android meminta persetujuan Screen Pinning. Aplikasi menampilkan soal, waktu, penyimpanan jawaban, konfirmasi soal kosong, dan submit.
+7. Aplikasi yang dibuka kembali mencoba memulihkan sesi lama lebih dahulu, bukan memaksakan Welcome Screen.
 
-### Cara membuat APK
+## Ketentuan kompatibilitas
 
-**Pilihan A: GitHub Actions (paling mudah jika tidak memiliki Android Studio)**
+- Android minimal versi 9, API 28.
+- Mode LAN menggunakan server desktop My SmartClass dengan `http://alamat-ip-sekolah:port` seperti sebelumnya.
+- Mode Online memerlukan Worker v0.4.1 atau versi kompatibel dan ujian baru yang diterbitkan dengan `loginMode: ROSTER`.
+- Paket online lama yang masih memakai kode peserta pribadi (`PRIVATE_CODE`) tidak otomatis berubah. Gunakan APK lama untuk paket lama atau terbitkan paket baru dari desktop agar muncul dropdown.
+- Screen Pinning pada HP pribadi **tidak bisa menjamin blokir semua aplikasi secara absolut**. Pemilik perangkat masih bisa melepas sematan sesuai ketentuan Android. Pengawasan guru tetap diperlukan.
+- Tidak ada password guru, API Key Resend, Cloudflare Secret, atau token administrator di APK.
 
-1. Ekstrak folder proyek ini dan unggah seluruh isinya ke repository GitHub baru sebagai isi root repository.
-2. Buka tab **Actions** > **Build My SmartExam APK** > **Run workflow**. Workflow juga berjalan saat push ke branch `main`.
-3. Setelah workflow berhasil, buka hasil run > **Artifacts** > `My-SmartExam-Browser-v0.1.0-debug-apk`.
-4. Unduh, ekstrak hasil artifacts, lalu pasang `app-debug.apk` pada HP uji. Ini APK debug untuk pengujian, bukan rilis final ke siswa.
+## Periksa kesiapan sebelum ujian sungguhan
 
-**Pilihan B: Android Studio / Windows**
-
-- Gunakan Android Studio dengan JDK 17, Android SDK Platform 35, Gradle 8.11.1, dan koneksi untuk mengambil dependency Android Gradle Plugin 8.9.2 serta Kotlin Plugin 2.1.20.
-- Buka folder ini sebagai proyek Android/Gradle. Jika sistem meminta Gradle distribution, pilih Gradle 8.11.1.
-- Build dengan perintah `gradle :app:assembleDebug` atau menu Build APK(s) di Android Studio.
-- APK hasil build berada di `app/build/outputs/apk/debug/app-debug.apk`.
-- Paket saat ini **tidak** menyertakan Gradle Wrapper JAR karena lingkungan authoring tidak memiliki distribusi Gradle untuk mengekstraknya. GitHub Actions menggunakan Gradle yang disiapkan otomatis.
-
-### Penting tentang keamanan dan koneksi
-
-- Mode **LAN** mengizinkan HTTP hanya ke alamat IP privat. HTTP LAN tidak terenkripsi. Gunakan jaringan kelas yang diawasi, bukan jaringan Wi-Fi publik. Server ujian yang dapat diakses internet harus memakai HTTPS.
-- Mode **Online** belum aktif. Jangan membuka API Ujian LAN yang sekarang ke internet karena masih mengandalkan kode dan pemilihan nama dari daftar siswa.
-- Android HP pribadi memungkinkan siswa melepas Screen Pinning. Aplikasi tidak memakai Accessibility, Device Owner, VPN, atau teknik yang mengambil alih HP.
-- Bila koneksi hilang sampai batas waktu ujian habis, server bisa menolak jawaban yang terlambat. Antrean jawaban lokal tidak menjamin pemulihan setelah sesi kedaluwarsa. Kita perlu kebijakan server khusus untuk itu pada revisi berikutnya.
-- Aplikasi mencatat indikasi kehilangan fokus **hanya secara lokal**. Belum ada layanan pengiriman laporan pelanggaran ke dashboard guru.
-- Identitas sesi disimpan di preferensi privat dan di luar backup Android. Untuk perangkat nyata tetap pertimbangkan enkripsi key via Android Keystore pada tahap hardening.
-
-### Sisa pekerjaan sebelum rilis produksi
-
-1. Bangun dan uji APK di Android SDK, lalu uji beberapa merek HP.
-2. Integrasikan mode online dengan Cloudflare Worker dan database D1; terapkan PIN peserta dan otorisasi server.
-3. Tambahkan API peristiwa keamanan dan monitoring guru pada My SmartClass.
-4. Tambahkan kebijakan reconnect/submit ketika jaringan terputus dan waktu server sudah habis.
-5. Finalisasi tampilan, audit keamanan, tanda tangan APK release yang tetap, dan pengujian 30 siswa secara bersamaan.
-
-**Catatan pengujian:** Aturan Kotlin murni sudah diuji melalui `tests/ExamRulesTest.kt`. Lingkungan pembuatan arsip tidak memiliki Android SDK atau Gradle sehingga **build APK dan pengujian HP belum dapat diverifikasi**.
+Gunakan `CHECKLIST-UJI-ANDROID.md` dan `QA-STATUS.md`. Pertahankan proyek desktop dan server produksi, jangan ubah migrasi D1 atau route Cloudflare untuk memasang APK siswa.

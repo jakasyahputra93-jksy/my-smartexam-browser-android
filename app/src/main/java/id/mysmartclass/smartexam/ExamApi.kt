@@ -6,11 +6,11 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
-/** Klien HTTP ringan untuk API ujian LAN; online memakai kontrak API yang sama. */
+/** Klien ujian LAN lama dan Cloud v0.4.1, tanpa akses administrator pada APK. */
 class ExamApi(private val baseUrl: String) {
     private fun enc(value: String): String = URLEncoder.encode(value, "UTF-8")
 
-    private fun request(method: String, path: String, body: JSONObject? = null): JSONObject {
+    private fun request(method: String, path: String, body: JSONObject? = null, sessionKey: String? = null): JSONObject {
         val connection = (URL(baseUrl + path).openConnection() as HttpURLConnection)
         try {
             connection.requestMethod = method
@@ -20,7 +20,8 @@ class ExamApi(private val baseUrl: String) {
             connection.useCaches = false
             connection.setRequestProperty("Accept", "application/json")
             connection.setRequestProperty("Cache-Control", "no-cache")
-            connection.setRequestProperty("User-Agent", "MySmartExamBrowser/0.1.0")
+            connection.setRequestProperty("User-Agent", "MySmartExamBrowser/0.3.0")
+            if (!sessionKey.isNullOrBlank()) connection.setRequestProperty("Authorization", "Bearer $sessionKey")
             if (body != null) {
                 connection.doOutput = true
                 connection.setRequestProperty("Content-Type", "application/json; charset=utf-8")
@@ -46,12 +47,15 @@ class ExamApi(private val baseUrl: String) {
     fun join(code: String, participant: ExamParticipant): AttemptData = AttemptData.fromJson(
         request("POST", "/api/exam/public/join", JSONObject()
             .put("token", code)
-            .put("studentId", participant.id)
-            .put("studentCode", participant.name))
+            .put("studentId", participant.id))
     )
 
+
     fun resume(attemptId: String, key: String): AttemptData = AttemptData.fromJson(
-        request("GET", "/api/exam/public/attempt/${enc(attemptId)}?key=${enc(key)}")
+        if (baseUrl.startsWith("https://"))
+            request("GET", "/api/exam/public/attempt/${enc(attemptId)}", sessionKey = key)
+        else
+            request("GET", "/api/exam/public/attempt/${enc(attemptId)}?key=${enc(key)}")
     )
 
     fun saveAnswer(attemptId: String, key: String, questionId: String, answer: String) {

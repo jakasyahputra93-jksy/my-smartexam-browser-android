@@ -1,10 +1,8 @@
-Jika kotlinc dan Java tersedia:
+Uji aturan logika tanpa Android SDK:
 
-kotlinc app/src/main/java/id/mysmartclass/smartexam/ExamRules.kt tests/ExamRulesTest.kt -include-runtime -d aturan.jar
-java -jar aturan.jar
+kotlinc app/src/main/java/id/mysmartclass/smartexam/ExamRules.kt tests/ExamRulesTest.kt -include-runtime -d rules-test.jar
+java -jar rules-test.jar
 
-Jika Android Studio SDK / Gradle sudah terpasang:
+Target hasil: LULUS: 23+ pemeriksaan aturan dasar My SmartExam.
 
-gradle :app:assembleDebug
-
-Jangan menganggap kelulusan tes aturan Kotlin sebagai pengganti pengujian APK di HP nyata.
+Android Gradle build resmi dilakukan lewat GitHub Actions: Build My SmartExam APK.

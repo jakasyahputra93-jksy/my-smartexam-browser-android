@@ -3,7 +3,7 @@ package id.mysmartclass.smartexam
 import org.json.JSONObject
 
 // Nama properti sengaja mengikuti kontrak API lokal My SmartClass RC6.19.14.
-data class ExamParticipant(val id: String, val name: String, val label: String)
+data class ExamParticipant(val id: String, val name: String, val label: String, val status: String = "AVAILABLE")
 
 data class PublicExamInfo(
     val token: String,
@@ -23,7 +23,8 @@ data class PublicExamInfo(
                 ExamParticipant(
                     id = student.getString("id"),
                     name = student.getString("name"),
-                    label = student.optString("label", student.getString("name"))
+                    label = student.optString("label", student.getString("name")),
+                    status = student.optString("status", "AVAILABLE")
                 )
             }
             return PublicExamInfo(
